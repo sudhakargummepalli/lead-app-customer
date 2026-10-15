@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lead Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: slim header with pipeline strip, then two columns — capture form (left) and lead register (right); stacks on phones */
+:root{
+  --bg:#f5f7f8; --surface:#ffffff; --ink:#14232b; --muted:#5b6d77; --line:#dce3e7;
+  --accent:#0d6b6e; --accent-ink:#ffffff; --accent-soft:#e2f0ef;
+  --s-new:#2f6fd6; --s-contacted:#a26a00; --s-qualified:#6b4fc2; --s-won:#1e8a4c; --s-lost:#b03a3a;
+  --danger:#b03a3a;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Instrument Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0e171c; --surface:#152229; --ink:#e3ecef; --muted:#93a6af; --line:#24353e;
+  --accent:#4fb8b5; --accent-ink:#06191a; --accent-soft:#173a3b;
+  --s-new:#7aa8f2; --s-contacted:#e0a83a; --s-qualified:#a993ec; --s-won:#5cc98a; --s-lost:#ec7f7f; --danger:#ec7f7f;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;padding:0 16px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 48px;display:grid;gap:24px}
+h1,h2{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(1.7rem,3.5vw,2.3rem)}
+h2{font-size:1.15rem}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px}
+header p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.sync{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--danger)}
+.dot.live{background:var(--s-won)}
+.pipe{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.stage{all:unset;cursor:pointer;padding:12px 14px;border-right:1px solid var(--line);display:grid;gap:2px;position:relative}
+.stage:last-child{border-right:0}
+.stage::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--c)}
+.stage .n{font-family:var(--f-display);font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.stage .l{font-size:.78rem;color:var(--muted);font-weight:500}
+.stage[aria-pressed="true"]{background:var(--accent-soft)}
+.stage:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cols{display:grid;grid-template-columns:340px minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.cols{grid-template-columns:1fr}.pipe{grid-template-columns:repeat(3,minmax(0,1fr))}.stage:nth-child(3){border-right:0}.stage:nth-child(-n+3){border-bottom:1px solid var(--line)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:grid;gap:14px}
+form{display:grid;gap:12px}
+.field{display:grid;gap:4px}
+label{font-size:.8rem;font-weight:600;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+textarea{resize:vertical;min-height:70px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{color:var(--danger);font-size:.78rem;min-height:1em}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-weight:600;border-radius:8px;padding:9px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.tools input{max-width:300px}
+.count{font-size:.85rem;color:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);font-weight:600}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.name{font-weight:600}
+.src{font-size:.78rem;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:.84rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.addr{color:var(--muted);font-size:.88rem;max-width:26ch}
+select.status{width:auto;padding:4px 8px;font-size:.82rem;color:var(--c);font-weight:600}
+.age{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.acts{display:flex;gap:6px;white-space:nowrap}
+.acts button{padding:5px 10px;font-size:.8rem}
+.acts .del{color:var(--danger)}
+.copy{all:unset;cursor:pointer;color:var(--muted);font-size:.72rem;margin-left:6px;text-decoration:underline}
+.copy:focus-visible{outline:2px solid var(--accent)}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-family:var(--f-display);font-size:1.1rem;margin-bottom:4px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:.88rem;font-weight:500}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">CRM · Lead management</div>
+      <h1>Lead Desk</h1>
+      <p>Capture new customer leads, keep their contact details in one place, and move each one through the sales pipeline.</p>
+    </div>
+    <div class="sync"><span class="dot" id="dot"></span><span id="syncText">Connecting to server…</span></div>
+  </header>
+
+  <nav class="pipe" id="pipe" aria-label="Filter by pipeline stage"></nav>
+
+  <div class="cols">
+    <section class="panel" aria-labelledby="formTitle">
+      <h2 id="formTitle">Add a lead</h2>
+      <form id="leadForm" novalidate>
+        <div class="field">
+          <label for="f-name">Customer name</label>
+          <input id="f-name" autocomplete="off" placeholder="e.g. Priya Raman" required>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-phone">Phone no.</label>
+            <input id="f-phone" type="tel" autocomplete="off" placeholder="+91 98765 43210">
+          </div>
+          <div class="field">
+            <label for="f-status">Stage</label>
+            <select id="f-status"></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-email">Mail ID</label>
+          <input id="f-email" type="email" autocomplete="off" placeholder="name@company.com">
+        </div>
+        <div class="field">
+          <label for="f-address">Address</label>
+          <textarea id="f-address" placeholder="Street, city, state, PIN"></textarea>
+        </div>
+        <div class="field">
+          <label for="f-source">Lead source</label>
+          <select id="f-source">
+            <option>Website</option><option>Referral</option><option>Phone enquiry</option><option>Walk-in</option><option>Trade show</option><option>Social media</option>
+          </select>
+        </div>
+        <div class="err" id="formErr" role="alert"></div>
+        <div class="btns">
+          <button type="submit" class="primary" id="saveBtn">Save lead</button>
+          <button type="button" id="cancelEdit" hidden>Cancel edit</button>
+        </div>
+      </form>
+    </section>
+
+    <section style="display:grid;gap:12px;min-width:0" aria-labelledby="regTitle">
+      <div class="tools">
+        <div><h2 id="regTitle">Customer leads</h2><div class="count" id="count"></div></div>
+        <input id="search" type="search" placeholder="Search name, phone, mail, address" aria-label="Search leads">
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Customer</th><th>Phone no.</th><th>Mail ID</th><th>Address</th><th>Stage</th><th>Added</th><th>Actions</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="empty" id="empty" hidden></div>
+      </div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const API="/api/leads";
+const STAGES=[
+  {k:"new",l:"New",c:"var(--s-new)"},
+  {k:"contacted",l:"Contacted",c:"var(--s-contacted)"},
+  {k:"qualified",l:"Qualified",c:"var(--s-qualified)"},
+  {k:"won",l:"Won",c:"var(--s-won)"},
+  {k:"lost",l:"Lost",c:"var(--s-lost)"}];
+const stageOf=k=>STAGES.find(s=>s.k===k)||STAGES[0];
+const $=id=>document.getElementById(id);
+
+let leads=[], filter=null, query="", editingId=null, confirmId=null;
+
+$("f-status").innerHTML=STAGES.map(s=>`<option value="${s.k}">${s.l}</option>`).join("");
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function age(iso){const t=Date.parse(iso);if(!t)return"";const d=Math.floor((Date.now()-t)/864e5);return d<=0?"Today":d===1?"1 day ago":d+" days ago"}
+function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2200)}
+function setOnline(ok){$("dot").classList.toggle("live",ok);$("syncText").textContent=ok?"Connected · saved to server":"Server not reachable · start the backend and reload"}
+
+// --- API client ---------------------------------------------------------
+async function api(path,opts={}){
+  let res;
+  try{res=await fetch(path,{headers:{"Content-Type":"application/json"},...opts})}
+  catch{setOnline(false);throw new Error("Could not reach the server. Check that the backend is running.")}
+  setOnline(true);
+  if(res.status===204)return null;
+  const body=await res.json().catch(()=>null);
+  if(!res.ok){
+    let msg=body&&body.detail;
+    if(Array.isArray(msg))msg=msg.map(e=>String(e.msg).replace(/^Value error, /,"")).join("; ");
+    throw new Error(msg||`Request failed (${res.status})`);
+  }
+  return body;
+}
+async function loadLeads(){
+  try{leads=await api(API)}catch(e){toast(e.message)}
+  render();
+}
+
+// --- rendering ------------------------------------------------------------
+function renderPipe(){
+  $("pipe").innerHTML=STAGES.map(s=>{
+    const n=leads.filter(l=>l.status===s.k).length;
+    return `<button class="stage" style="--c:${s.c}" data-k="${s.k}" aria-pressed="${filter===s.k}"><span class="n">${n}</span><span class="l">${s.l}</span></button>`}).join("");
+}
+function render(){
+  renderPipe();
+  const q=query.trim().toLowerCase();
+  const list=leads.filter(l=>(!filter||l.status===filter)&&(!q||[l.name,l.phone,l.email,l.address].join(" ").toLowerCase().includes(q)));
+  $("count").textContent=`${list.length} of ${leads.length} lead${leads.length===1?"":"s"}${filter?" · "+stageOf(filter).l:""}`;
+  $("rows").innerHTML=list.map(l=>{
+    const s=stageOf(l.status);
+    const acts=confirmId===l.id
+      ?`<button class="del" data-act="yes" data-id="${l.id}">Delete</button><button data-act="no">Keep</button>`
+      :`<button data-act="edit" data-id="${l.id}">Edit</button><button class="del" data-act="ask" data-id="${l.id}">Remove</button>`;
+    return `<tr>
+      <td><div class="name">${esc(l.name)}</div><div class="src">${esc(l.source)} · #${l.id}</div></td>
+      <td class="mono">${esc(l.phone)||"—"}${l.phone?`<button class="copy" data-copy="${esc(l.phone)}">copy</button>`:""}</td>
+      <td class="mono">${esc(l.email)||"—"}${l.email?`<button class="copy" data-copy="${esc(l.email)}">copy</button>`:""}</td>
+      <td class="addr">${esc(l.address)||"—"}</td>
+      <td><select class="status" style="--c:${s.c}" data-id="${l.id}" aria-label="Stage for ${esc(l.name)}">${STAGES.map(x=>`<option value="${x.k}"${x.k===l.status?" selected":""}>${x.l}</option>`).join("")}</select></td>
+      <td class="age">${age(l.created_at)}</td>
+      <td><div class="acts">${acts}</div></td></tr>`}).join("");
+  const empty=$("empty");
+  if(!list.length){
+    empty.hidden=false;
+    empty.innerHTML=leads.length?`<strong>No leads match</strong>Try a different search or clear the stage filter.`
+      :`<strong>No leads yet</strong>Add your first customer with the form. Each lead you save is stored on the server.`;
+  } else empty.hidden=true;
+}
+
+// --- events -----------------------------------------------------------------
+$("pipe").addEventListener("click",e=>{const b=e.target.closest(".stage");if(!b)return;filter=filter===b.dataset.k?null:b.dataset.k;render()});
+$("search").addEventListener("input",e=>{query=e.target.value;render()});
+
+$("rows").addEventListener("click",async e=>{
+  const c=e.target.closest("[data-copy]");
+  if(c){try{await navigator.clipboard.writeText(c.dataset.copy);toast("Copied")}catch{toast("Copy not allowed here")}return}
+  const b=e.target.closest("button[data-act]");if(!b)return;
+  const id=Number(b.dataset.id), act=b.dataset.act;
+  if(act==="ask"){confirmId=id;render()}
+  else if(act==="no"){confirmId=null;render()}
+  else if(act==="yes"){
+    confirmId=null;
+    try{await api(`${API}/${id}`,{method:"DELETE"});toast("Lead removed")}catch(err){toast(err.message)}
+    await loadLeads();
+  }
+  else if(act==="edit")startEdit(id);
+});
+$("rows").addEventListener("change",async e=>{
+  const s=e.target.closest("select.status");if(!s)return;
+  try{await api(`${API}/${s.dataset.id}`,{method:"PATCH",body:JSON.stringify({status:s.value})});toast("Stage updated")}
+  catch(err){toast(err.message)}
+  await loadLeads();
+});
+
+function startEdit(id){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  editingId=id;
+  $("f-name").value=l.name;$("f-phone").value=l.phone;$("f-email").value=l.email;
+  $("f-address").value=l.address;$("f-status").value=l.status;$("f-source").value=l.source;
+  $("formTitle").textContent="Edit lead";$("saveBtn").textContent="Update lead";$("cancelEdit").hidden=false;
+  $("f-name").focus();
+}
+function resetForm(){
+  editingId=null;$("leadForm").reset();$("formErr").textContent="";
+  $("formTitle").textContent="Add a lead";$("saveBtn").textContent="Save lead";$("cancelEdit").hidden=true;
+}
+$("cancelEdit").addEventListener("click",resetForm);
+
+$("leadForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const d={name:$("f-name").value.trim(),phone:$("f-phone").value.trim(),email:$("f-email").value.trim(),
+    address:$("f-address").value.trim(),status:$("f-status").value,source:$("f-source").value};
+  if(!d.name){$("formErr").textContent="Enter the customer's name.";return}
+  if(!d.phone&&!d.email){$("formErr").textContent="Add a phone number or a mail ID so the lead can be contacted.";return}
+  $("saveBtn").disabled=true;$("formErr").textContent="";
+  try{
+    if(editingId){await api(`${API}/${editingId}`,{method:"PATCH",body:JSON.stringify(d)});toast("Lead updated")}
+    else{await api(API,{method:"POST",body:JSON.stringify(d)});toast("Lead saved")}
+    resetForm();await loadLeads();
+  }catch(err){$("formErr").textContent=err.message}
+  finally{$("saveBtn").disabled=false}
+});
+
+render();
+loadLeads();
+</script>
+</body>
+</html>
