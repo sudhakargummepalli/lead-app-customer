@@ -4,5 +4,10 @@
   publish = "static"
   functions = "netlify/functions"
 
+# Netlify pip-installs requirements.txt (the local FastAPI backend) during the
+# build. Pin a Python version that has prebuilt wheels for those packages.
+[build.environment]
+  PYTHON_VERSION = "3.12"
+
 [functions]
   node_bundler = "esbuild"
