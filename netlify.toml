@@ -1,0 +1,8 @@
+# Netlify: serve the Lead Desk page from static/ and the leads API from
+# netlify/functions/leads.mjs (mounted at /api/*, leads kept in Netlify Blobs).
+[build]
+  publish = "static"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"

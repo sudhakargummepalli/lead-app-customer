@@ -1,0 +1,13 @@
+{
+  "name": "lead-desk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lead Desk CRM: leads API as a Netlify Function with Netlify Blobs storage",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@netlify/blobs": "8.1.0"
+  }
+}

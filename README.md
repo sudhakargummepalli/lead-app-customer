@@ -29,6 +29,12 @@ Stages: `new`, `contacted`, `qualified`, `won`, `lost`.
 
 Validation: mail IDs must look like `name@domain.com` and are stored in lowercase, phone numbers need at least 7 digits, and a second lead with the same phone no. or mail ID is refused with `409 Conflict`.
 
+## Deploy on Netlify
+
+Netlify can't run the Python backend, so the repo also has a Netlify version of the same API: `netlify/functions/leads.mjs`, a Netlify Function that stores leads in Netlify Blobs. `netlify.toml` publishes the page from `static/` and serves the function at `/api/leads`, so the page works unchanged.
+
+In Netlify choose **Add new site → Import an existing project → GitHub**, pick this repository, and keep the settings from `netlify.toml`. Leads saved on Netlify are stored in Netlify Blobs, separately from the local `leads.db`.
+
 ## MCP server
 
 `mcp_server.py` is a local MCP server (stdio) that lets Claude or any MCP client work with the same `leads.db`. It needs only the Python standard library.

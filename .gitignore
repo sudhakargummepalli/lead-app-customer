@@ -4,3 +4,5 @@ __pycache__/
 .pytest_cache/
 leads.db
 leads.db-*
+node_modules/
+.netlify/
